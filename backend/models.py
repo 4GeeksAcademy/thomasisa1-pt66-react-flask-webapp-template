@@ -7,6 +7,8 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(80), nullable=False)
+    first_name = db.Column(db.String(80), nullable=False)  # New field
+    last_name = db.Column(db.String(80), nullable=False)   # New field
     is_active = db.Column(db.Boolean(), nullable=False, default=True)
     favorites = db.relationship('Favorite', backref='user', lazy=True)
 
@@ -17,6 +19,8 @@ class User(db.Model):
         return {
             "id": self.id,
             "email": self.email,
+            "first_name": self.first_name,
+            "last_name": self.last_name,
         }
 
 class People(db.Model):

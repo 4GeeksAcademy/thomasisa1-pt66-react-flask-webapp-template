@@ -39,6 +39,21 @@ def get_users():
     users = User.query.all()
     return jsonify([u.serialize() for u in users]), 200
 
+@api.route('/users', methods=['POST'])
+def create_user():
+    data = request.get_json()
+    if not data or not all(k in data for k in ("email", "password", "first_name", "last_name")):
+        return jsonify({"error": "Invalid data"}), 400
+    user = User(
+        email=data["email"],
+        password=data["password"],
+        first_name=data["first_name"],
+        last_name=data["last_name"]
+    )
+    db.session.add(user)
+    db.session.commit()
+    return jsonify(user.serialize()), 201
+
 @api.route('/users/favorites', methods=['GET'])
 def get_user_favorites():
     user_id = request.args.get('user_id')
