@@ -4,11 +4,14 @@ This module takes care of starting the API Server, Loading the DB and Adding the
 from flask import Flask, request, jsonify, url_for, Blueprint
 from .models import db, People, Planet, User, Favorite
 from flask_cors import CORS
+import logging
 
 api = Blueprint('api', __name__, url_prefix="/api")
 
 # Allow CORS requests to this API
 CORS(api)
+
+logging.basicConfig(level=logging.DEBUG)
 
 @api.route('/people', methods=['GET'])
 def get_people():
@@ -41,18 +44,22 @@ def get_users():
 
 @api.route('/users', methods=['POST'])
 def create_user():
-    data = request.get_json()
-    if not data or not all(k in data for k in ("email", "password", "first_name", "last_name")):
-        return jsonify({"error": "Invalid data"}), 400
-    user = User(
-        email=data["email"],
-        password=data["password"],
-        first_name=data["first_name"],
-        last_name=data["last_name"]
-    )
-    db.session.add(user)
-    db.session.commit()
-    return jsonify(user.serialize()), 201
+    try:
+        data = request.get_json()
+        if not data or not all(k in data for k in ("email", "password", "first_name", "last_name")):
+            return jsonify({"error": "Invalid data"}), 400
+        user = User(
+            email=data["email"],
+            password=data["password"],
+            first_name=data["first_name"],
+            last_name=data["last_name"]
+        )
+        db.session.add(user)
+        db.session.commit()
+        return jsonify(user.serialize()), 201
+    except Exception as e:
+        logging.error(f"Error creating user: {e}")
+        return jsonify({"error": "Internal server error"}), 500
 
 @api.route('/users/favorites', methods=['GET'])
 def get_user_favorites():
@@ -98,3 +105,10 @@ def delete_favorite_people(people_id):
     db.session.delete(favorite)
     db.session.commit()
     return jsonify({"message": "Favorite deleted"}), 200
+
+@api.route('/hello', methods=['POST', 'GET'])
+def handle_hello():
+    response_body = {
+        "message": "Hello! I'm a message that came from the backend, check the network tab on the google inspector and you will see the GET request"
+    }
+    return jsonify(response_body), 200
