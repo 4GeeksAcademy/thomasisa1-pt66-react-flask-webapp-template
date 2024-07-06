@@ -13,6 +13,24 @@ CORS(api)
 
 logging.basicConfig(level=logging.DEBUG)
 
+@api.route('/people', methods=['POST'])
+def add_person():
+    try:
+        data = request.get_json()
+        if not data or not all(k in data for k in ("name", "birth_year", "gender")):
+            return jsonify({"error": "Invalid data"}), 400
+        person = People(
+            name=data["name"],
+            birth_year=data["birth_year"],
+            gender=data["gender"]
+        )
+        db.session.add(person)
+        db.session.commit()
+        return jsonify(person.serialize()), 201
+    except Exception as e:
+        logging.error(f"Error creating person: {e}")
+        return jsonify({"error": "Internal server error"}), 500
+
 @api.route('/people', methods=['GET'])
 def get_people():
     people = People.query.all()

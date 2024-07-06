@@ -5,6 +5,7 @@ from flask_cors import CORS
 from .routes import api
 from .admin import setup_admin
 from .config import Config
+from .commands import insert_sample_data
 
 # Initialize extensions
 db = SQLAlchemy()
@@ -26,6 +27,10 @@ def create_app():
     
     # Set up Flask-Admin
     setup_admin(app)
+
+    with app.app_context():
+        db.create_all()
+        insert_sample_data()
 
     return app
 
